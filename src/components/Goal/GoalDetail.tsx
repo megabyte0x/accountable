@@ -9,6 +9,7 @@ import { encodeFunctionData, formatEther } from "viem";
 import type { Goal, Supporter } from "../../lib/types";
 import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
 import Image from "next/image";
+
 interface GoalDetailProps {
     goalId: string;
     onBack: () => void;
@@ -112,7 +113,7 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
                 data: encodeFunctionData({
                     abi: ACCOUNTABLE_CONTRACT_ABI,
                     functionName: "completeGoal",
-                    args: [goalId, true]
+                    args: [goalId, true, formatEther(BigInt("0"))]
                 })
             }, {
                 onSuccess: async (hash) => {
@@ -146,14 +147,16 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
         setError(null);
 
         try {
-            // In a real implementation, you would interact with a smart contract
-            // to distribute the staked ETH to supporters
-            // For now, we'll just update the local storage
+            const amountPerSupporter = formatEther(BigInt(Number(goal.stakeAmount) / supporters.length));
 
             // Simulate a transaction to distribute ETH (this would be handled by a contract)
             sendTransaction({
                 to: address,
-                value: 0n, // dummy transaction
+                data: encodeFunctionData({
+                    abi: ACCOUNTABLE_CONTRACT_ABI,
+                    functionName: "completeGoal",
+                    args: [goalId, false, formatEther(BigInt(amountPerSupporter))]
+                }) // dummy transaction
             }, {
                 onSuccess: async (hash) => {
                     setTxHash(hash);
