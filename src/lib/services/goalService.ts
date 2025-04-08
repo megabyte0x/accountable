@@ -1,119 +1,226 @@
 import type { Goal, Supporter } from "../types";
-import { v4 as uuidv4 } from "uuid";
+import { supabase } from "../supabase-client";
 
-// This is a mock service - in a real app, this would interact with a database
-// You would replace this with actual API calls to your backend
+// Table name for goals in Supabase
+const GOALS_TABLE = 'goals';
+const SUPPORTERS_TABLE = 'supporters';
 
-const GOALS_STORAGE_KEY = "accountable_goals";
+// Define database types
+interface GoalDB {
+    id: string;
+    address: string;
+    title: string;
+    description: string;
+    deadline: string;
+    stake_amount: string;
+    is_completed: boolean;
+    status: string;
+    created_at: string;
+    supporters?: SupporterDB[];
+}
 
-// Helper to get goals from localStorage
-const getGoalsFromStorage = (): Goal[] => {
-    if (typeof window === "undefined") return [];
+interface SupporterDB {
+    id: string;
+    goal_id: string;
+    user_id: string;
+    user_address: string;
+    user_name?: string;
+    user_avatar?: string;
+}
 
-    const goalsJson = localStorage.getItem(GOALS_STORAGE_KEY);
-    if (!goalsJson) return [];
-
-    try {
-        return JSON.parse(goalsJson);
-    } catch (e) {
-        console.error("Failed to parse goals from storage", e);
-        return [];
-    }
+// Helper to convert snake_case DB results to camelCase for our app
+const mapGoalFromDB = (goal: GoalDB): Goal => {
+    return {
+        id: goal.id,
+        address: goal.address,
+        title: goal.title,
+        description: goal.description,
+        deadline: new Date(goal.deadline),
+        stakeAmount: goal.stake_amount,
+        isCompleted: goal.is_completed,
+        status: goal.status as 'active' | 'completed' | 'failed',
+        createdAt: new Date(goal.created_at),
+        supporters: Array.isArray(goal.supporters)
+            ? goal.supporters.map(mapSupporterFromDB)
+            : []
+    };
 };
 
-// Helper to save goals to localStorage
-const saveGoalsToStorage = (goals: Goal[]): void => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
+// Helper to convert snake_case DB results to camelCase for supporters
+const mapSupporterFromDB = (supporter: SupporterDB): Supporter => {
+    return {
+        id: supporter.id,
+        userId: supporter.user_id,
+        userAddress: supporter.user_address,
+        userName: supporter.user_name,
+        userAvatar: supporter.user_avatar
+    };
+};
+
+// Helper to convert camelCase to snake_case for DB operations
+const prepareGoalForDB = (goal: Partial<Goal>): Record<string, unknown> => {
+    const dbGoal: Record<string, unknown> = {};
+
+    if (goal.address) dbGoal.address = goal.address;
+    if (goal.title) dbGoal.title = goal.title;
+    if (goal.description) dbGoal.description = goal.description;
+    if (goal.deadline) dbGoal.deadline = goal.deadline;
+    if (goal.stakeAmount) dbGoal.stake_amount = goal.stakeAmount;
+    if (goal.isCompleted !== undefined) dbGoal.is_completed = goal.isCompleted;
+    if (goal.status) dbGoal.status = goal.status;
+    if (goal.createdAt) dbGoal.created_at = goal.createdAt;
+
+    return dbGoal;
+};
+
+// Helper to convert camelCase to snake_case for supporter DB operations
+const prepareSupporterForDB = (supporter: Supporter, goalId: string): Record<string, unknown> => {
+    return {
+        goal_id: goalId,
+        user_id: supporter.userId,
+        user_address: supporter.userAddress,
+        user_name: supporter.userName,
+        user_avatar: supporter.userAvatar
+    };
 };
 
 export const goalService = {
     // Get all goals for a user
-    getUserGoals: (userId: string): Goal[] => {
-        const goals = getGoalsFromStorage();
-        return goals.filter(goal => goal.userId === userId);
+    getUserGoals: async (address: string): Promise<Goal[]> => {
+        const { data, error } = await supabase
+            .from(GOALS_TABLE)
+            .select('*')
+            .eq('address', address);
+
+        if (error) {
+            console.error('Error fetching goals:', error);
+            return [];
+        }
+
+        return (data || []).map(mapGoalFromDB);
     },
 
     // Get a specific goal by ID
-    getGoalById: (goalId: string): Goal | null => {
-        const goals = getGoalsFromStorage();
-        return goals.find(goal => goal.id === goalId) || null;
+    getGoalById: async (goalId: string): Promise<Goal | null> => {
+        const { data, error } = await supabase
+            .from(GOALS_TABLE)
+            .select(`
+                *,
+                supporters:${SUPPORTERS_TABLE}(*)
+            `)
+            .eq('id', goalId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching goal:', error);
+            return null;
+        }
+
+        return data ? mapGoalFromDB(data) : null;
     },
 
     // Create a new goal
-    createGoal: (
-        userId: string,
+    createGoal: async (
+        address: string,
         title: string,
         description: string,
         deadline: Date,
         stakeAmount: string
-    ): Goal => {
-        const goals = getGoalsFromStorage();
-
-        const newGoal: Goal = {
-            id: uuidv4(),
-            userId,
+    ): Promise<Goal | null> => {
+        const newGoal = prepareGoalForDB({
+            address,
             title,
             description,
             deadline,
             stakeAmount,
-            supporters: [],
             isCompleted: false,
             status: 'active',
             createdAt: new Date()
-        };
+        });
 
-        goals.push(newGoal);
-        saveGoalsToStorage(goals);
+        const { data, error } = await supabase
+            .from(GOALS_TABLE)
+            .insert(newGoal)
+            .select()
+            .single();
 
-        return newGoal;
+        if (error) {
+            console.error('Error creating goal:', error);
+            return null;
+        }
+
+        return data ? mapGoalFromDB(data) : null;
     },
 
     // Add a supporter to a goal
-    addSupporter: (goalId: string, supporter: Supporter): Goal | null => {
-        const goals = getGoalsFromStorage();
-        const goalIndex = goals.findIndex(goal => goal.id === goalId);
+    addSupporter: async (goalId: string, supporter: Supporter): Promise<Goal | null> => {
+        // First check if the supporter already exists
+        const { data: existingSupporter, error: checkError } = await supabase
+            .from(SUPPORTERS_TABLE)
+            .select('*')
+            .eq('goal_id', goalId)
+            .eq('user_id', supporter.userId)
+            .single();
 
-        if (goalIndex === -1) return null;
-
-        // Check if supporter already exists
-        const existingSupporter = goals[goalIndex].supporters.find(
-            s => s.userId === supporter.userId
-        );
-
-        if (!existingSupporter) {
-            goals[goalIndex].supporters.push(supporter);
-            saveGoalsToStorage(goals);
+        if (checkError && checkError.code !== 'PGRST116') {
+            console.error('Error checking supporter:', checkError);
+            return null;
         }
 
-        return goals[goalIndex];
+        if (!existingSupporter) {
+            const supporterData = prepareSupporterForDB(supporter, goalId);
+
+            const { error } = await supabase
+                .from(SUPPORTERS_TABLE)
+                .insert(supporterData);
+
+            if (error) {
+                console.error('Error adding supporter:', error);
+                return null;
+            }
+        }
+
+        // Return the updated goal
+        return await goalService.getGoalById(goalId);
     },
 
     // Mark a goal as completed
-    completeGoal: (goalId: string): Goal | null => {
-        const goals = getGoalsFromStorage();
-        const goalIndex = goals.findIndex(goal => goal.id === goalId);
+    completeGoal: async (goalId: string): Promise<Goal | null> => {
+        const { data, error } = await supabase
+            .from(GOALS_TABLE)
+            .update({
+                is_completed: true,
+                status: 'completed'
+            })
+            .eq('id', goalId)
+            .select()
+            .single();
 
-        if (goalIndex === -1) return null;
+        if (error) {
+            console.error('Error completing goal:', error);
+            return null;
+        }
 
-        goals[goalIndex].isCompleted = true;
-        goals[goalIndex].status = 'completed';
-        saveGoalsToStorage(goals);
-
-        return goals[goalIndex];
+        return data ? mapGoalFromDB(data) : null;
     },
 
     // Mark a goal as failed
-    failGoal: (goalId: string): Goal | null => {
-        const goals = getGoalsFromStorage();
-        const goalIndex = goals.findIndex(goal => goal.id === goalId);
+    failGoal: async (goalId: string): Promise<Goal | null> => {
+        const { data, error } = await supabase
+            .from(GOALS_TABLE)
+            .update({
+                is_completed: true,
+                status: 'failed'
+            })
+            .eq('id', goalId)
+            .select()
+            .single();
 
-        if (goalIndex === -1) return null;
+        if (error) {
+            console.error('Error failing goal:', error);
+            return null;
+        }
 
-        goals[goalIndex].isCompleted = true;
-        goals[goalIndex].status = 'failed';
-        saveGoalsToStorage(goals);
-
-        return goals[goalIndex];
+        return data ? mapGoalFromDB(data) : null;
     }
 }; 

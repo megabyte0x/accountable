@@ -6,7 +6,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useAccount, useBalance, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { goalService } from "../../lib/services/goalService";
-import { parseEther } from "viem";
+import { encodeFunctionData, parseEther } from "viem";
+import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
 
 interface GoalFormProps {
     onSuccess?: (goalId: string) => void;
@@ -54,18 +55,24 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
             // Convert ETH to Wei
             const stakeAmountWei = parseEther(stakeAmount);
+            const deadlineDate = new Date(deadline);
 
             // Send transaction to stake ETH
             sendTransaction({
-                to: address, // For now, sending to self as a placeholder
+                to: ACCOUNTABLE_CONTRACT, // For now, sending to self as a placeholder
                 value: stakeAmountWei,
+                data: encodeFunctionData({
+                    abi: ACCOUNTABLE_CONTRACT_ABI,
+                    functionName: "createGoal",
+                    args: [deadlineDate.toUTCString(), [address]],
+                }),
+
                 // In a real implementation, you would send to a smart contract
             }, {
                 onSuccess: (hash) => {
                     setTxHash(hash);
 
                     // Create the goal in the local database
-                    const deadlineDate = new Date(deadline);
                     const newGoal = goalService.createGoal(
                         address,
                         title,
@@ -75,7 +82,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                     );
 
                     if (onSuccess) {
-                        onSuccess(newGoal.id);
+                        onSuccess(newGoal.id || "");
                     }
                 },
                 onError: (error) => {
@@ -140,8 +147,8 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                 <Input
                     id="stakeAmount"
                     type="number"
-                    step="0.001"
-                    min="0.001"
+                    step="0.01"
+                    min="0.00001"
                     value={stakeAmount}
                     onChange={(e) => setStakeAmount(e.target.value)}
                     placeholder="Amount to stake"

@@ -1,6 +1,6 @@
 export interface Goal {
-    id: string;
-    userId: string;
+    id?: string | null;
+    address: string;
     title: string;
     description: string;
     deadline: Date;
