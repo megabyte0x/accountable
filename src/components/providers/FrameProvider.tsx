@@ -48,18 +48,16 @@ export function useFrame() {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
+
     const load = async () => {
       try {
         const context = await sdk.context;
-        if (!mounted) return;
 
         setContext(context);
         setIsSDKLoaded(true);
 
         // Set up event listeners
         sdk.on("frameAdded", ({ notificationDetails }) => {
-          if (!mounted) return;
           console.log("Frame added", notificationDetails);
           setAdded(true);
           setNotificationDetails(notificationDetails ?? null);
@@ -67,35 +65,30 @@ export function useFrame() {
         });
 
         sdk.on("frameAddRejected", ({ reason }) => {
-          if (!mounted) return;
           console.log("Frame add rejected", reason);
           setAdded(false);
           setLastEvent(`Frame add rejected: ${reason}`);
         });
 
         sdk.on("frameRemoved", () => {
-          if (!mounted) return;
           console.log("Frame removed");
           setAdded(false);
           setLastEvent("Frame removed");
         });
 
         sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-          if (!mounted) return;
           console.log("Notifications enabled", notificationDetails);
           setNotificationDetails(notificationDetails ?? null);
           setLastEvent("Notifications enabled");
         });
 
         sdk.on("notificationsDisabled", () => {
-          if (!mounted) return;
           console.log("Notifications disabled");
           setNotificationDetails(null);
           setLastEvent("Notifications disabled");
         });
 
         sdk.on("primaryButtonClicked", () => {
-          if (!mounted) return;
           console.log("Primary button clicked");
           setLastEvent("Primary button clicked");
         });
@@ -107,7 +100,6 @@ export function useFrame() {
         // Set up MIPD Store
         const store = createStore();
         store.subscribe((providerDetails) => {
-          if (!mounted) return;
           console.log("PROVIDER DETAILS", providerDetails);
         });
       } catch (error) {
@@ -120,31 +112,17 @@ export function useFrame() {
       setIsSDKLoaded(true);
       load();
       return () => {
-        mounted = false;
         sdk.removeAllListeners();
       };
     }
 
-    return () => {
-      mounted = false;
-    };
   }, [isSDKLoaded]);
 
   return { isSDKLoaded, context, added, notificationDetails, lastEvent, addFrame, addFrameResult };
 }
 
 export function FrameProvider({ children }: { children: React.ReactNode }) {
-  const [isMounted, setIsMounted] = useState(false);
-  const { isSDKLoaded, context } = useFrame();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    // Return children directly during SSR to avoid hydration mismatch
-    return <>{children}</>;
-  }
+  const { isSDKLoaded, context } = useFrame()
 
   return (
     <FrameContext.Provider value={{ isSDKLoaded, context }}>

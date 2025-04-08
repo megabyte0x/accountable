@@ -1,9 +1,9 @@
 "use client";
 
 import type { Goal } from "../../lib/types";
-import { Button } from "../ui/Button";
 import { formatDistanceToNow } from "date-fns";
 import { formatEther } from "viem";
+import Image from "next/image";
 
 interface GoalCardProps {
     goal: Goal;
@@ -120,10 +120,22 @@ export default function GoalCard({ goal }: GoalCardProps) {
                             {goal.supporters.slice(0, 5).map((supporter) => (
                                 <div
                                     key={supporter.user_id}
-                                    className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-medium"
+                                    className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden"
                                     title={supporter.userName || supporter.userAddress}
                                 >
-                                    {supporter.userName ? supporter.userName[0].toUpperCase() : "?"}
+                                    {supporter.userAvatar ? (
+                                        <Image
+                                            src={supporter.userAvatar}
+                                            alt={supporter.userName || "Supporter"}
+                                            width={32}
+                                            height={32}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-medium">
+                                            {supporter.userName ? supporter.userName[0].toUpperCase() : "?"}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                             {goal.supporters.length > 5 && (
@@ -135,20 +147,6 @@ export default function GoalCard({ goal }: GoalCardProps) {
                     )}
                 </div>
 
-                {goal.status === "active" && (
-                    <div className="flex gap-2">
-                        <Button
-                            className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
-                        >
-                            Complete
-                        </Button>
-                        <Button
-                            className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                        >
-                            Give Up
-                        </Button>
-                    </div>
-                )}
 
                 {goal.status === "completed" && (
                     <div className="flex items-center justify-center text-green-600 dark:text-green-400 font-medium p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">

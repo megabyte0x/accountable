@@ -11,6 +11,7 @@ import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/cons
 import { searchFarcasterUsers } from "../../app/actions/searchFarcaster";
 import type { Supporter, FarcasterUser } from "../../lib/types";
 import Image from "next/image";
+import sdk from "@farcaster/frame-sdk";
 
 interface GoalFormProps {
     onSuccess?: (goalId: string) => void;
@@ -109,6 +110,22 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
         setInvitedSupporters(invitedSupporters.filter(supporter => supporter.user_id !== id));
     };
 
+    const castNewGoal = async (
+        title: string,
+        stakeAmount: string,
+        invitedSupporters: Supporter[]
+    ) => {
+
+        const finalMessage = `I am accounting for a new goal: ${title} where I have staked ${stakeAmount} ETH. I hope they will support me! ${invitedSupporters.map(supporter => `@${supporter.userName}`).join(" ")}`;
+        console.log("Final message:", finalMessage);
+        await sdk.actions.composeCast({
+            text: finalMessage,
+            embeds: [
+                "https://accountable.megabyte0x.xyz"]
+        });
+        console.log("Casted new goal");
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -170,8 +187,11 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
                     // Only call onSuccess if the DB operation succeeded
                     if (createdGoal && onSuccess) {
+                        console.log("Casting new goal");
+                        castNewGoal(title, stakeAmount, invitedSupporters);
                         onSuccess(id);
                     }
+
                 },
                 onError: (error) => {
                     console.error("Transaction error:", error);
