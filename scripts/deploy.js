@@ -398,18 +398,31 @@ async function deployToVercel(useGitHub = false) {
 
     // Extract project name from inspect output
     let projectName;
+    let userDomain;
     let domain;
     const nameMatch = inspectOutput.match(/Name\s+([^\n]+)/);
     if (nameMatch) {
       projectName = nameMatch[1].trim();
-      domain = `${projectName}.vercel.app`;
+      userDomain = process.env.NEXT_PUBLIC_URL;
+      if (userDomain) {
+        // remove https:// from userDomain
+        domain = userDomain.replace('https://', `${projectName}.`);
+      } else {
+        domain = `${projectName}.vercel.app`;
+      }
       console.log('🌐 Using project name for domain:', domain);
     } else {
       // Try alternative format
       const altMatch = inspectOutput.match(/Found Project [^/]+\/([^\n]+)/);
       if (altMatch) {
         projectName = altMatch[1].trim();
-        domain = `${projectName}.vercel.app`;
+        userDomain = process.env.NEXT_PUBLIC_URL;
+        if (userDomain) {
+          // remove https:// from userDomain
+          domain = userDomain.replace('https://', `${projectName}.`);
+        } else {
+          domain = `${projectName}.vercel.app`;
+        }
         console.log('🌐 Using project name for domain:', domain);
       } else {
         throw new Error('Could not determine project name from inspection output');

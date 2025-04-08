@@ -1,0 +1,27 @@
+Vercel CLI 41.4.1
+Fetching projects in megabytes-projects
+> Projects found under megabytes-projects  [2s]
+
+  Project Name               Latest Production URL                                          Updated   Node Version   
+  accountable                https://accountable-megabyte0x-megabytes-projects.vercel.app   15s       22.x           
+  superstreak                https://superstreak-megabyte0x-megabytes-projects.vercel.app   9h        22.x           
+  pill-pulse-7fik            https://pill-pulse-7fik.vercel.app                             1d        22.x           
+  pill-pulse                 https://pill-pulse-git-main-megabytes-projects.vercel.app      1d        22.x           
+  pill-pulse-farcaster       https://pill-pulse-farcaster-megabytes-projects.vercel.app     1d        22.x           
+  megabyte0x                 https://megabyte0x-megabytes-projects.vercel.app               7d        18.x           
+  privy-audit-g8ea           https://privy-audit-g8ea-megabytes-projects.vercel.app         16d       22.x           
+  privy-audit                https://privy-audit-megabytes-projects.vercel.app              16d       22.x           
+  orbi-egg-minter-frontend   https://orbi-egg-minter-frontend.vercel.app                    22d       22.x           
+  clone-xyz                  https://clone-xyz-megabytes-projects.vercel.app                59d       22.x           
+  clone-xyz-cqbk             https://clone-xyz-cqbk-megabytes-projects.vercel.app           59d       22.x           
+  taptap-frontend            https://taptap.megabyte0x.xyz                                  67d       22.x           
+  dynamic-aa                 https://dynamic-aa.vercel.app                                  92d       22.x           
+  encode-bitcoin             https://encode-bitcoin-megabytes-projects.vercel.app           148d      20.x           
+  headless-hashnode-blog     https://blog.megabyte0x.xyz                                    246d      20.x           
+  crypto-dev-dao             https://crypto-dev-dao-nine.vercel.app                         361d      18.x           
+  superfluid-aug             https://superfluid-aug.vercel.app                              361d      18.x           
+  fdk-migrator               https://fdk-migrator.vercel.app                                361d      18.x           
+  aarc-widget-tutorial       https://aarc-widget-tutorial.vercel.app                        361d      18.x           
+  the-bored-broker           https://the-bored-broker.vercel.app                            361d      16.x           
+
+> To display the next page, run `vercel project ls --next 1712969023137`

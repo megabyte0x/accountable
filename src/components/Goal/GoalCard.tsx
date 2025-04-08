@@ -1,10 +1,9 @@
 "use client";
 
 import type { Goal } from "../../lib/types";
-import { formatDistanceToNow } from "date-fns";
 import { formatEther } from "viem";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 interface GoalCardProps {
     goal: Goal;
@@ -13,7 +12,9 @@ interface GoalCardProps {
 export default function GoalCard({ goal }: GoalCardProps) {
     // Add state for the countdown timer
     const [timeRemaining, setTimeRemaining] = useState("");
-    const deadlineDate = new Date(goal.deadline);
+
+    // Use useMemo to prevent deadlineDate from being recreated on every render
+    const deadlineDate = useMemo(() => new Date(goal.deadline), [goal.deadline]);
 
     // Update the countdown timer
     useEffect(() => {
