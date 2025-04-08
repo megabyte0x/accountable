@@ -189,9 +189,8 @@ export default function Demo(
             className="flex items-center gap-2 transition-colors"
           >
             <span
-              className={`transform transition-transform ${
-                isContextOpen ? "rotate-90" : ""
-              }`}
+              className={`transform transition-transform ${isContextOpen ? "rotate-90" : ""
+                }`}
             >
               ➤
             </span>
@@ -200,7 +199,7 @@ export default function Demo(
 
           {isContextOpen && (
             <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 {JSON.stringify(context, null, 2)}
               </pre>
             </div>
@@ -212,7 +211,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono font-black text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.signIn
               </pre>
             </div>
@@ -221,7 +220,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono font-black text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.openUrl
               </pre>
             </div>
@@ -230,7 +229,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.openUrl
               </pre>
             </div>
@@ -239,7 +238,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.viewProfile
               </pre>
             </div>
@@ -248,7 +247,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.close
               </pre>
             </div>
@@ -260,7 +259,7 @@ export default function Demo(
           <h2 className="font-2xl font-bold">Last event</h2>
 
           <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <pre className="font-mono font-black text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
               {lastEvent || "none"}
             </pre>
           </div>
@@ -279,7 +278,7 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-black dark:text-white">
                 sdk.actions.addFrame
               </pre>
             </div>
@@ -358,8 +357,8 @@ export default function Demo(
                       {isConfirming
                         ? "Confirming..."
                         : isConfirmed
-                        ? "Confirmed!"
-                        : "Pending"}
+                          ? "Confirmed!"
+                          : "Pending"}
                     </div>
                   </div>
                 )}
@@ -480,8 +479,8 @@ function SendEth() {
             {isConfirming
               ? "Confirming..."
               : isConfirmed
-              ? "Confirmed!"
-              : "Pending"}
+                ? "Confirmed!"
+                : "Pending"}
           </div>
         </div>
       )}
@@ -591,7 +590,7 @@ function ViewProfile() {
           id="view-profile-fid"
           type="number"
           value={fid}
-          className="mb-2"
+          className="mb-2 text-black dark:text-white"
           onChange={(e) => {
             setFid(e.target.value);
           }}
