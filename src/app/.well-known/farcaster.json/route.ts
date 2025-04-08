@@ -14,7 +14,7 @@ export async function GET() {
           "name": "accountable",
           "iconUrl": "https://accountable.megabyte0x.xyz/icon.png",
           "homeUrl": "https://accountable.megabyte0x.xyz",
-          "imageUrl": "https://accountable.megabyte0x.xyz/opengraph-image",
+          "imageUrl": "https://accountable.megabyte0x.xyz/image.png",
           "buttonTitle": "Get Me Accountable!",
           "splashImageUrl": "https://accountable.megabyte0x.xyz/splash.png",
           "splashBackgroundColor": "#f7f7f7",
