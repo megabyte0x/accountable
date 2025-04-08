@@ -6,7 +6,10 @@ import { Button } from "./ui/Button";
 import GoalList from "./Goal/GoalList";
 import GoalForm from "./Goal/GoalForm";
 import GoalDetail from "./Goal/GoalDetail";
+import { ACCOUNTABLE_CONTRACT } from "../app/utils/constants";
+
 type View = "list" | "create" | "detail";
+
 
 export default function Accountable() {
     const [currentView, setCurrentView] = useState<View>("list");
@@ -109,7 +112,7 @@ export default function Accountable() {
 
                         <div className="flex justify-center space-x-4">
                             <a
-                                href="https://basescan.org/address/0x1234567890123456789012345678901234567890"
+                                href={`https://basescan.org/address/${ACCOUNTABLE_CONTRACT}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-purple-500 transition-colors"
