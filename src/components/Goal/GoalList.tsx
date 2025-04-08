@@ -5,7 +5,7 @@ import { useAccount } from "wagmi";
 import { goalService } from "../../lib/services/goalService";
 import type { Goal } from "../../lib/types";
 import { Button } from "../ui/Button";
-import GoalCard from "./GoalCard";
+import GoalCard from "~/components/Goal/GoalCard";
 
 interface GoalListProps {
     onSelectGoal?: (goalId: string) => void;
@@ -17,12 +17,22 @@ export default function GoalList({ onSelectGoal }: GoalListProps) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (address) {
-            // Load goals for the current user
-            const userGoals = goalService.getUserGoals(address);
-            setGoals(userGoals);
-            setLoading(false);
+        async function loadGoals() {
+            if (address) {
+                try {
+                    // Load goals for the current user
+                    const userGoals = await goalService.getUserGoals(address);
+                    setGoals(userGoals);
+                } catch (error) {
+                    console.error("Error loading goals:", error);
+                    setGoals([]);
+                } finally {
+                    setLoading(false);
+                }
+            }
         }
+
+        loadGoals();
     }, [address]);
 
     const handleSelectGoal = (goalId: string) => {
@@ -57,11 +67,11 @@ export default function GoalList({ onSelectGoal }: GoalListProps) {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {goals.map((goal) => (
+                    {goals && goals.length > 0 && goals.map((goal) => (
                         <button
                             key={goal.id}
                             type="button"
-                            onClick={() => handleSelectGoal(goal.id)}
+                            onClick={() => goal.id && handleSelectGoal(goal.id)}
                             className="text-left w-full p-0 border-none bg-transparent cursor-pointer"
                         >
                             <GoalCard goal={goal} />

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { Button } from "../ui/Button";
 import { goalService } from "../../lib/services/goalService";
 import { formatDistanceToNow } from "date-fns";
-import { formatEther } from "viem";
+import { encodeFunctionData, formatEther } from "viem";
+import type { Goal } from "../../lib/types";
+import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
 
 interface GoalDetailProps {
     goalId: string;
@@ -14,6 +16,8 @@ interface GoalDetailProps {
 
 export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
     const { address } = useAccount();
+    const [goal, setGoal] = useState<Goal | null>(null);
+    const [loading, setLoading] = useState(true);
     const [isCompleting, setIsCompleting] = useState(false);
     const [isFailing, setIsFailing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -24,8 +28,31 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
         hash: txHash,
     });
 
-    // Get the goal from local storage
-    const goal = goalService.getGoalById(goalId);
+    // Load the goal when component mounts
+    useEffect(() => {
+        const loadGoal = async () => {
+            console.log("Loading goal:", goalId);
+            try {
+                const goalData = await goalService.getGoalById(goalId);
+                setGoal(goalData);
+            } catch (err) {
+                console.error("Error loading goal:", err);
+                setError("Failed to load goal data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadGoal();
+    }, [goalId]);
+
+    if (loading) {
+        return (
+            <div className="text-center p-4">
+                <p className="mb-4">Loading goal details...</p>
+            </div>
+        );
+    }
 
     if (!goal) {
         return (
@@ -36,15 +63,24 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
         );
     }
 
-    // Format deadline
-    const deadlineDate = new Date(goal.deadline);
-    const timeRemaining = formatDistanceToNow(deadlineDate, { addSuffix: true });
+    // Format deadline - safely handle the date
+    let timeRemaining = "Unknown";
+    try {
+        if (goal.deadline instanceof Date && !Number.isNaN(goal.deadline.getTime())) {
+            timeRemaining = formatDistanceToNow(goal.deadline, { addSuffix: true });
+        } else {
+            timeRemaining = "Invalid date";
+        }
+    } catch (err) {
+        console.error("Error formatting date:", err);
+        timeRemaining = "Date error";
+    }
 
     // Format stake amount
-    const stakeAmountEth = formatEther(BigInt(goal.stakeAmount));
+    const stakeAmountEth = formatEther(BigInt(goal.stakeAmount || "0"));
 
     // Check if the current user owns this goal
-    const isOwner = address && address === goal.userId;
+    const isOwner = address && address === goal.address;
 
     // Check if the goal is still active
     const isActive = goal.status === "active";
@@ -62,14 +98,21 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
 
             // Simulate a transaction to return ETH (this would be handled by a contract)
             sendTransaction({
-                to: address,
-                value: 0n, // dummy transaction
+                to: ACCOUNTABLE_CONTRACT,
+                data: encodeFunctionData({
+                    abi: ACCOUNTABLE_CONTRACT_ABI,
+                    functionName: "completeGoal",
+                    args: [goalId, true]
+                })
             }, {
-                onSuccess: (hash) => {
+                onSuccess: async (hash) => {
                     setTxHash(hash);
 
                     // Update the goal status
-                    goalService.completeGoal(goalId);
+                    const updatedGoal = await goalService.completeGoal(goalId);
+                    if (updatedGoal) {
+                        setGoal(updatedGoal);
+                    }
 
                     setIsCompleting(false);
                 },
@@ -102,11 +145,14 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
                 to: address,
                 value: 0n, // dummy transaction
             }, {
-                onSuccess: (hash) => {
+                onSuccess: async (hash) => {
                     setTxHash(hash);
 
                     // Update the goal status
-                    goalService.failGoal(goalId);
+                    const updatedGoal = await goalService.failGoal(goalId);
+                    if (updatedGoal) {
+                        setGoal(updatedGoal);
+                    }
 
                     setIsFailing(false);
                 },
@@ -149,8 +195,8 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
             </div>
 
             <div className="mb-4">
-                <h3 className="font-bold mb-2">Supporters ({goal.supporters.length})</h3>
-                {goal.supporters.length === 0 ? (
+                <h3 className="font-bold mb-2">Supporters ({goal.supporters?.length || 0})</h3>
+                {!goal.supporters || goal.supporters.length === 0 ? (
                     <p className="text-gray-500">No supporters yet</p>
                 ) : (
                     <ul className="space-y-2">

@@ -69,6 +69,7 @@ const prepareGoalForDB = (goal: Partial<Goal>): Record<string, unknown> => {
     if (goal.isCompleted !== undefined) dbGoal.is_completed = goal.isCompleted;
     if (goal.status) dbGoal.status = goal.status;
     if (goal.createdAt) dbGoal.created_at = goal.createdAt;
+    if (goal.id) dbGoal.id = goal.id;
 
     return dbGoal;
 };
@@ -87,17 +88,25 @@ const prepareSupporterForDB = (supporter: Supporter, goalId: string): Record<str
 export const goalService = {
     // Get all goals for a user
     getUserGoals: async (address: string): Promise<Goal[]> => {
-        const { data, error } = await supabase
-            .from(GOALS_TABLE)
-            .select('*')
-            .eq('address', address);
+        let dataReceived: GoalDB[] = [];
 
-        if (error) {
+        try {
+            const { data, error } = await supabase
+                .from(GOALS_TABLE)
+                .select('*')
+                .eq('address', address);
+
+            if (error) {
+                throw error;
+            }
+
+            dataReceived = data || [];
+        } catch (error) {
             console.error('Error fetching goals:', error);
             return [];
         }
 
-        return (data || []).map(mapGoalFromDB);
+        return dataReceived.map(mapGoalFromDB);
     },
 
     // Get a specific goal by ID
@@ -121,13 +130,16 @@ export const goalService = {
 
     // Create a new goal
     createGoal: async (
+        id: string,
         address: string,
         title: string,
         description: string,
         deadline: Date,
         stakeAmount: string
     ): Promise<Goal | null> => {
+        console.log("Creating goal:", id);
         const newGoal = prepareGoalForDB({
+            id,
             address,
             title,
             description,

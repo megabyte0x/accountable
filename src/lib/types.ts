@@ -1,5 +1,5 @@
 export interface Goal {
-    id?: string | null;
+    id: string | null;
     address: string;
     title: string;
     description: string;
