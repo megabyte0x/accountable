@@ -219,9 +219,10 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 rounded-lg shadow-sm">
+            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Create a New Goal</h2>
             <div>
-                <Label htmlFor="title">Goal Title</Label>
+                <Label htmlFor="title" className="text-gray-700">Goal Title</Label>
                 <Input
                     id="title"
                     value={title}
@@ -232,7 +233,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
             </div>
 
             <div>
-                <Label htmlFor="description">Goal Description</Label>
+                <Label htmlFor="description" className="text-gray-700">Goal Description</Label>
                 <Input
                     id="description"
                     value={description}
@@ -243,7 +244,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
             </div>
 
             <div>
-                <Label htmlFor="deadline">Deadline</Label>
+                <Label htmlFor="deadline" className="text-gray-700">Deadline</Label>
                 <Input
                     id="deadline"
                     type="datetime-local"
@@ -255,7 +256,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
             </div>
 
             <div>
-                <Label htmlFor="stakeAmount">Stake Amount (ETH)</Label>
+                <Label htmlFor="stakeAmount" className="text-gray-700">Stake Amount (ETH)</Label>
                 <Input
                     id="stakeAmount"
                     type="text"
@@ -277,13 +278,13 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
             {/* Supporter Invitation Section */}
             <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="text-lg font-medium mb-3">Add Accountability Partners</h3>
+                <h3 className="text-lg font-medium mb-3 text-gray-800">Add Accountability Partners</h3>
                 <div className="space-y-4 mb-6">
                     <div>
-                        <Label htmlFor="farcasterUsername">Lookup by Farcaster Username</Label>
+                        <Label htmlFor="farcasterUsername" className="text-gray-700">Lookup by Farcaster Username</Label>
                         <div className="flex gap-2">
                             <div className="relative flex-1">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700">@</span>
                                 <Input
                                     id="farcasterUsername"
                                     value={farcasterUsername}
@@ -296,7 +297,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                         <Button
                             type="button"
                             onClick={handleLookupFarcasterUser}
-                            className="bg-purple-600 hover:bg-purple-700 mt-2"
+                            className="bg-purple-700 hover:bg-purple-800 text-white mt-2 w-full"
                             disabled={loading}
                         >
                             {loading ? "Looking up..." : "Lookup"}
@@ -324,7 +325,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                                 <Button
                                     type="button"
                                     onClick={handleAddSupporter}
-                                    className="mt-2"
+                                    className="mt-2 text-white"
                                 >
                                     Add as Supporter
                                 </Button>
@@ -335,7 +336,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
                 {invitedSupporters.length > 0 && (
                     <div>
-                        <h3 className="font-bold mb-2">Invited Supporters:</h3>
+                        <h3 className="font-bold mb-2 text-gray-800">Invited Supporters:</h3>
                         <ul className="space-y-2">
                             {invitedSupporters.map(supporter => (
                                 <li
@@ -362,7 +363,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                                     </div>
                                     <Button
                                         onClick={() => handleRemoveSupporter(supporter.user_id)}
-                                        className="bg-red-500 hover:bg-red-600 text-sm py-1"
+                                        className="bg-red-500 hover:bg-red-600 text-white text-sm py-1"
                                     >
                                         Remove
                                     </Button>
@@ -383,14 +384,14 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                 <Button
                     type="button"
                     onClick={onCancel}
-                    className="bg-gray-300 hover:bg-gray-400 text-black"
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800"
                 >
                     Cancel
                 </Button>
                 <Button
                     type="submit"
                     disabled={isSubmitting || isSendingTx || isConfirming}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                     {isSubmitting || isSendingTx
                         ? "Staking ETH..."

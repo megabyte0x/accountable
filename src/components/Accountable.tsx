@@ -86,7 +86,6 @@ export default function Accountable() {
 
                         {currentView === "create" && (
                             <div className="p-6">
-                                <h2 className="text-xl font-bold mb-6 text-center">Create a New Goal</h2>
                                 <GoalForm
                                     onSuccess={handleCreateGoalSuccess}
                                     onCancel={handleCancelCreate}
