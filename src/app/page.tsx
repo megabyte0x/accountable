@@ -1,28 +1,12 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import App from "./app";
 
-const appUrl = process.env.NEXT_PUBLIC_URL;
 
 // frame preview metadata
 const appName = process.env.NEXT_PUBLIC_FRAME_NAME;
-const splashImageUrl = `${appUrl}/splash.png`;
-const iconUrl = `${appUrl}/icon.png`;
 
-const framePreviewMetadata = {
-  version: "next",
-  imageUrl: `${appUrl}/opengraph-image`,
-  button: {
-    title: process.env.NEXT_PUBLIC_FRAME_BUTTON_TEXT,
-    action: {
-      type: "launch_frame",
-      name: appName,
-      url: appUrl,
-      splashImageUrl,
-      iconUrl,
-      splashBackgroundColor: "#f7f7f7",
-    },
-  },
-};
+
+
 
 export const revalidate = 300;
 
@@ -34,7 +18,21 @@ export async function generateMetadata(): Promise<Metadata> {
       description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION,
     },
     other: {
-      "fc:frame": JSON.stringify(framePreviewMetadata),
+      "fc:frame": JSON.stringify({
+        "version": "next",
+        "imageUrl": "https://accountable.megabyte0x.xyz/image.png",
+        "button": {
+          "title": "Get Me Accountable!",
+          "action": {
+            "type": "launch_frame",
+            "name": "accountable",
+            "url": "https://accountable.megabyte0x.xyz",
+            "splashImageUrl": "https://accountable.megabyte0x.xyz/splash.png",
+            "iconUrl": "https://accountable.megabyte0x.xyz/icon.png",
+            "splashBackgroundColor": "#f7f7f7"
+          }
+        }
+      }),
     },
   };
 }

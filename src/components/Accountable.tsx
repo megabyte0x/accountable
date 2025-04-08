@@ -105,7 +105,37 @@ export default function Accountable() {
                 )}
 
                 <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    <p>Powered by Ethereum, Farcaster & Accountability</p>
+                    <div className="space-y-2">
+
+                        <div className="flex justify-center space-x-4">
+                            <a
+                                href="https://basescan.org/address/0x1234567890123456789012345678901234567890"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-purple-500 transition-colors"
+                            >
+                                Contract
+                            </a>
+
+                            <a
+                                href="https://github.com/megabyte0x/accountable"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-purple-500 transition-colors"
+                            >
+                                GitHub
+                            </a>
+                        </div>
+                        <br />
+                        <a
+                            href="https://warpcast.com/megabyte"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-purple-500 transition-colors"
+                        >
+                            Built by megabyte.base.eth
+                        </a>
+                    </div>
                 </footer>
             </div>
         </div>
