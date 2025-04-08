@@ -1,5 +1,5 @@
 export interface Goal {
-    id: string | null;
+    id: string;
     address: string;
     title: string;
     description: string;
@@ -12,8 +12,7 @@ export interface Goal {
 }
 
 export interface Supporter {
-    id: string;
-    userId: string;
+    user_id: string;
     userAddress: string;
     userName?: string;
     userAvatar?: string;
@@ -26,4 +25,44 @@ export interface User {
     displayName?: string;
     avatar?: string;
     walletAddress: string;
-} 
+}
+
+export interface InviteSupportersProps {
+    goalId: string;
+    onInvited?: () => void;
+    onCancel?: () => void;
+}
+
+// Farcaster user interface
+export interface FarcasterUser {
+    fid: number;
+    username: string;
+    display_name?: string;
+
+    pfp_url?: string;
+    address?: string;
+}
+
+
+
+// Define database types
+export interface GoalDB {
+    id: string;
+    address: string;
+    title: string;
+    description: string;
+    deadline: string;
+    stake_amount: string;
+    is_completed: boolean;
+    status: string;
+    created_at: string;
+    supporters?: SupporterDB[];
+}
+
+export interface SupporterDB {
+    goal_id: string;
+    user_id: string;
+    user_address: string;
+    user_name?: string;
+    user_avatar?: string;
+}

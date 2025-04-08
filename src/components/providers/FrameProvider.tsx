@@ -48,77 +48,102 @@ export function useFrame() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
     const load = async () => {
-      const context = await sdk.context;
-      setContext(context);
-      setIsSDKLoaded(true);
+      try {
+        const context = await sdk.context;
+        if (!mounted) return;
 
-      // Set up event listeners
-      sdk.on("frameAdded", ({ notificationDetails }) => {
-        console.log("Frame added", notificationDetails);
-        setAdded(true);
-        setNotificationDetails(notificationDetails ?? null);
-        setLastEvent("Frame added");
-      });
+        setContext(context);
+        setIsSDKLoaded(true);
 
-      sdk.on("frameAddRejected", ({ reason }) => {
-        console.log("Frame add rejected", reason);
-        setAdded(false);
-        setLastEvent(`Frame add rejected: ${reason}`);
-      });
+        // Set up event listeners
+        sdk.on("frameAdded", ({ notificationDetails }) => {
+          if (!mounted) return;
+          console.log("Frame added", notificationDetails);
+          setAdded(true);
+          setNotificationDetails(notificationDetails ?? null);
+          setLastEvent("Frame added");
+        });
 
-      sdk.on("frameRemoved", () => {
-        console.log("Frame removed");
-        setAdded(false);
-        setLastEvent("Frame removed");
-      });
+        sdk.on("frameAddRejected", ({ reason }) => {
+          if (!mounted) return;
+          console.log("Frame add rejected", reason);
+          setAdded(false);
+          setLastEvent(`Frame add rejected: ${reason}`);
+        });
 
-      sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-        console.log("Notifications enabled", notificationDetails);
-        setNotificationDetails(notificationDetails ?? null);
-        setLastEvent("Notifications enabled");
-      });
+        sdk.on("frameRemoved", () => {
+          if (!mounted) return;
+          console.log("Frame removed");
+          setAdded(false);
+          setLastEvent("Frame removed");
+        });
 
-      sdk.on("notificationsDisabled", () => {
-        console.log("Notifications disabled");
-        setNotificationDetails(null);
-        setLastEvent("Notifications disabled");
-      });
+        sdk.on("notificationsEnabled", ({ notificationDetails }) => {
+          if (!mounted) return;
+          console.log("Notifications enabled", notificationDetails);
+          setNotificationDetails(notificationDetails ?? null);
+          setLastEvent("Notifications enabled");
+        });
 
-      sdk.on("primaryButtonClicked", () => {
-        console.log("Primary button clicked");
-        setLastEvent("Primary button clicked");
-      });
+        sdk.on("notificationsDisabled", () => {
+          if (!mounted) return;
+          console.log("Notifications disabled");
+          setNotificationDetails(null);
+          setLastEvent("Notifications disabled");
+        });
 
-      // Call ready action
-      console.log("Calling ready");
-      sdk.actions.ready({});
+        sdk.on("primaryButtonClicked", () => {
+          if (!mounted) return;
+          console.log("Primary button clicked");
+          setLastEvent("Primary button clicked");
+        });
 
-      // Set up MIPD Store
-      const store = createStore();
-      store.subscribe((providerDetails) => {
-        console.log("PROVIDER DETAILS", providerDetails);
-      });
+        // Call ready action
+        console.log("Calling ready");
+        sdk.actions.ready({});
+
+        // Set up MIPD Store
+        const store = createStore();
+        store.subscribe((providerDetails) => {
+          if (!mounted) return;
+          console.log("PROVIDER DETAILS", providerDetails);
+        });
+      } catch (error) {
+        console.error("Error initializing frame SDK:", error);
+      }
     };
 
-    if (sdk && !isSDKLoaded) {
+    if (typeof window !== 'undefined' && sdk && !isSDKLoaded) {
       console.log("Calling load");
       setIsSDKLoaded(true);
       load();
       return () => {
+        mounted = false;
         sdk.removeAllListeners();
       };
     }
+
+    return () => {
+      mounted = false;
+    };
   }, [isSDKLoaded]);
 
   return { isSDKLoaded, context, added, notificationDetails, lastEvent, addFrame, addFrameResult };
 }
 
 export function FrameProvider({ children }: { children: React.ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false);
   const { isSDKLoaded, context } = useFrame();
 
-  if (!isSDKLoaded) {
-    return <div>Loading...</div>;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    // Return children directly during SSR to avoid hydration mismatch
+    return <>{children}</>;
   }
 
   return (

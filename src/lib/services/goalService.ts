@@ -1,35 +1,71 @@
-import type { Goal, Supporter } from "../types";
+import type { Goal, GoalDB, Supporter, SupporterDB } from "../types";
 import { supabase } from "../supabase-client";
 
 // Table name for goals in Supabase
 const GOALS_TABLE = 'goals';
 const SUPPORTERS_TABLE = 'supporters';
 
-// Define database types
-interface GoalDB {
-    id: string;
-    address: string;
-    title: string;
-    description: string;
-    deadline: string;
-    stake_amount: string;
-    is_completed: boolean;
-    status: string;
-    created_at: string;
-    supporters?: SupporterDB[];
-}
-
-interface SupporterDB {
-    id: string;
-    goal_id: string;
-    user_id: string;
-    user_address: string;
-    user_name?: string;
-    user_avatar?: string;
-}
 
 // Helper to convert snake_case DB results to camelCase for our app
 const mapGoalFromDB = (goal: GoalDB): Goal => {
+    // Parse supporters if it's a string
+    let supportersArray: SupporterDB[] = [];
+
+    if (goal.supporters) {
+        try {
+            // If it's a string, try to parse it
+            if (typeof goal.supporters === 'string') {
+                // Clean the string before parsing - remove any escape characters that might be causing issues
+                const supportersString = goal.supporters as string;
+                const cleanedString = supportersString
+                    .replace(/\\/g, '') // Remove backslashes
+                    .replace(/"{/g, '{') // Replace leading quote + curly brace
+                    .replace(/}"/g, '}') // Replace trailing curly brace + quote
+                    .replace(/\[{/g, '[{') // Ensure proper array format
+                    .replace(/}\]/g, '}]');
+
+                // Try to parse with some fallback checks
+                try {
+                    supportersArray = JSON.parse(cleanedString);
+
+                    // If we got an object instead of an array, wrap it in an array
+                    if (!Array.isArray(supportersArray) && typeof supportersArray === 'object') {
+                        supportersArray = [supportersArray];
+                    }
+                } catch (parseError) {
+                    console.warn('First parse attempt failed, trying alternate approach:', parseError);
+
+                    // If it failed, it might be a single object without array brackets
+                    try {
+                        // If it looks like a single object, wrap it in array brackets
+                        if (cleanedString.trim().startsWith('{')) {
+                            supportersArray = [JSON.parse(cleanedString)];
+                        }
+                    } catch (fallbackError) {
+                        console.error('Fallback parsing failed:', fallbackError);
+                        supportersArray = [];
+                    }
+                }
+
+                console.log("Parsed supporters:", supportersArray);
+            }
+            // If it's already an array, use it directly
+            else if (Array.isArray(goal.supporters)) {
+                supportersArray = goal.supporters;
+            }
+        } catch (error) {
+            console.error('Error parsing supporters:', error);
+            console.error('Original data:', goal.supporters);
+            supportersArray = [];
+        }
+    }
+
+    // Ensure supportersArray is an array before mapping
+    if (!Array.isArray(supportersArray)) {
+        console.warn('Supporters is not an array after parsing, using empty array');
+        supportersArray = [];
+    }
+
     return {
         id: goal.id,
         address: goal.address,
@@ -40,17 +76,14 @@ const mapGoalFromDB = (goal: GoalDB): Goal => {
         isCompleted: goal.is_completed,
         status: goal.status as 'active' | 'completed' | 'failed',
         createdAt: new Date(goal.created_at),
-        supporters: Array.isArray(goal.supporters)
-            ? goal.supporters.map(mapSupporterFromDB)
-            : []
+        supporters: supportersArray.map(mapSupporterFromDB)
     };
 };
 
 // Helper to convert snake_case DB results to camelCase for supporters
 const mapSupporterFromDB = (supporter: SupporterDB): Supporter => {
     return {
-        id: supporter.id,
-        userId: supporter.user_id,
+        user_id: supporter.user_id,
         userAddress: supporter.user_address,
         userName: supporter.user_name,
         userAvatar: supporter.user_avatar
@@ -70,6 +103,7 @@ const prepareGoalForDB = (goal: Partial<Goal>): Record<string, unknown> => {
     if (goal.status) dbGoal.status = goal.status;
     if (goal.createdAt) dbGoal.created_at = goal.createdAt;
     if (goal.id) dbGoal.id = goal.id;
+    if (goal.supporters) dbGoal.supporters = goal.supporters.map(supporter => prepareSupporterForDB(supporter, goal.id || ""));
 
     return dbGoal;
 };
@@ -78,7 +112,7 @@ const prepareGoalForDB = (goal: Partial<Goal>): Record<string, unknown> => {
 const prepareSupporterForDB = (supporter: Supporter, goalId: string): Record<string, unknown> => {
     return {
         goal_id: goalId,
-        user_id: supporter.userId,
+        user_id: supporter.user_id,
         user_address: supporter.userAddress,
         user_name: supporter.userName,
         user_avatar: supporter.userAvatar
@@ -101,6 +135,7 @@ export const goalService = {
             }
 
             dataReceived = data || [];
+            console.log("dataReceived", dataReceived);
         } catch (error) {
             console.error('Error fetching goals:', error);
             return [];
@@ -135,7 +170,8 @@ export const goalService = {
         title: string,
         description: string,
         deadline: Date,
-        stakeAmount: string
+        stakeAmount: string,
+        supporters: Supporter[]
     ): Promise<Goal | null> => {
         console.log("Creating goal:", id);
         const newGoal = prepareGoalForDB({
@@ -147,7 +183,8 @@ export const goalService = {
             stakeAmount,
             isCompleted: false,
             status: 'active',
-            createdAt: new Date()
+            createdAt: new Date(),
+            supporters: supporters
         });
 
         const { data, error } = await supabase
@@ -171,7 +208,7 @@ export const goalService = {
             .from(SUPPORTERS_TABLE)
             .select('*')
             .eq('goal_id', goalId)
-            .eq('user_id', supporter.userId)
+            .eq('user_id', supporter.user_id)
             .single();
 
         if (checkError && checkError.code !== 'PGRST116') {
@@ -194,6 +231,20 @@ export const goalService = {
 
         // Return the updated goal
         return await goalService.getGoalById(goalId);
+    },
+
+    getSupportersByGoalId: async (goalId: string): Promise<Supporter[]> => {
+        const { data, error } = await supabase
+            .from(SUPPORTERS_TABLE)
+            .select('*')
+            .eq('goal_id', goalId);
+
+        if (error) {
+            console.error('Error fetching supporters:', error);
+            return [];
+        }
+
+        return data ? data.map(mapSupporterFromDB) : [];
     },
 
     // Mark a goal as completed
@@ -235,4 +286,4 @@ export const goalService = {
 
         return data ? mapGoalFromDB(data) : null;
     }
-}; 
+};

@@ -6,9 +6,9 @@ import { Button } from "../ui/Button";
 import { goalService } from "../../lib/services/goalService";
 import { formatDistanceToNow } from "date-fns";
 import { encodeFunctionData, formatEther } from "viem";
-import type { Goal } from "../../lib/types";
+import type { Goal, Supporter } from "../../lib/types";
 import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
-
+import Image from "next/image";
 interface GoalDetailProps {
     goalId: string;
     onBack: () => void;
@@ -17,6 +17,7 @@ interface GoalDetailProps {
 export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
     const { address } = useAccount();
     const [goal, setGoal] = useState<Goal | null>(null);
+    const [supporters, setSupporters] = useState<Supporter[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCompleting, setIsCompleting] = useState(false);
     const [isFailing, setIsFailing] = useState(false);
@@ -44,6 +45,15 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
         };
 
         loadGoal();
+    }, [goalId]);
+
+    useEffect(() => {
+        const loadSupporters = async () => {
+            const supportersData = await goalService.getSupportersByGoalId(goalId);
+            setSupporters(supportersData);
+        };
+
+        loadSupporters();
     }, [goalId]);
 
     if (loading) {
@@ -195,24 +205,34 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
             </div>
 
             <div className="mb-4">
-                <h3 className="font-bold mb-2">Supporters ({goal.supporters?.length || 0})</h3>
-                {!goal.supporters || goal.supporters.length === 0 ? (
+                <h3 className="font-bold mb-2">Supporters ({supporters.length})</h3>
+                {!supporters || supporters.length === 0 ? (
                     <p className="text-gray-500">No supporters yet</p>
                 ) : (
                     <ul className="space-y-2">
-                        {goal.supporters.map(supporter => (
+                        {supporters.map(supporter => (
                             <li
-                                key={supporter.id}
+                                key={supporter.user_id}
                                 className="flex items-center p-2 bg-gray-100 rounded"
                             >
                                 <div>
-                                    <span className="font-medium">
+                                    <Image
+                                        src={supporter.userAvatar || ""}
+                                        alt={supporter.userName || "Supporter"}
+                                        width={40}
+                                        height={40}
+                                        className="w-10 h-10 rounded-full mr-3"
+                                    />
+                                    <span className="font-medium text-gray-800">
                                         {supporter.userName || "Unnamed supporter"}
                                     </span>
                                     <div className="text-xs text-gray-500">
                                         {supporter.userAddress}
                                     </div>
+
                                 </div>
+
+
                             </li>
                         ))}
                     </ul>

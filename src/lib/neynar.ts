@@ -8,10 +8,11 @@ let neynarClient: NeynarAPIClient | null = null;
 export function getNeynarClient() {
   if (!neynarClient) {
     const apiKey = process.env.NEYNAR_API_KEY;
+    console.log("NEYNAR_API_KEY:", apiKey);
     if (!apiKey) {
       throw new Error('NEYNAR_API_KEY not configured');
     }
-    const config = new Configuration({ apiKey });
+    const config = new Configuration({ apiKey: apiKey });
     neynarClient = new NeynarAPIClient(config);
   }
   return neynarClient;
@@ -19,9 +20,9 @@ export function getNeynarClient() {
 
 type SendFrameNotificationResult =
   | {
-      state: "error";
-      error: unknown;
-    }
+    state: "error";
+    error: unknown;
+  }
   | { state: "no_token" }
   | { state: "rate_limit" }
   | { state: "success" };
@@ -41,12 +42,12 @@ export async function sendNeynarFrameNotification({
     const notification = {
       title,
       body,
-      target_url: process.env.NEXT_PUBLIC_URL!,
+      target_url: process.env.NEXT_PUBLIC_URL || "https://www.goal.fun",
     };
 
-    const result = await client.publishFrameNotifications({ 
-      targetFids, 
-      notification 
+    const result = await client.publishFrameNotifications({
+      targetFids,
+      notification
     });
 
     if (result.notification_deliveries.length > 0) {

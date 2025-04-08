@@ -8,6 +8,9 @@ import { useAccount, useBalance, useSendTransaction, useWaitForTransactionReceip
 import { goalService } from "../../lib/services/goalService";
 import { encodeFunctionData, parseEther } from "viem";
 import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
+import { searchFarcasterUsers } from "../../app/actions/searchFarcaster";
+import type { Supporter, FarcasterUser } from "../../lib/types";
+import Image from "next/image";
 
 interface GoalFormProps {
     onSuccess?: (goalId: string) => void;
@@ -25,6 +28,13 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Supporter related states
+    const [invitedSupporters, setInvitedSupporters] = useState<Supporter[]>([]);
+    const [farcasterUsername, setFarcasterUsername] = useState("");
+    const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [lookupError, setLookupError] = useState<string | null>(null);
+
     // Get min date (today) for the deadline input
     const today = new Date();
     const minDate = today.toISOString().split("T")[0];
@@ -35,6 +45,69 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
     const { isLoading: isConfirming } = useWaitForTransactionReceipt({
         hash: txHash,
     });
+
+    const handleLookupFarcasterUser = async () => {
+        if (!farcasterUsername) {
+            setLookupError("Please enter a Farcaster username");
+            return;
+        }
+
+        setLoading(true);
+        setLookupError(null);
+        try {
+            console.log("Looking up Farcaster user:", farcasterUsername);
+            const result = await searchFarcasterUsers(farcasterUsername);
+            console.log("Farcaster user search result:", result.user);
+            if (result.user) {
+                const user = {
+                    fid: result.user.fid || 0,
+                    username: result.user.username || "",
+                    display_name: result.user.display_name || "",
+                    pfp_url: result.user.pfp_url || "",
+                    address: result.user.verified_addresses.primary.eth_address || "",
+                };
+                setFarcasterUser(user);
+                console.log("Found Farcaster user:", user);
+            } else {
+                setLookupError(`User @${farcasterUsername} not found on Farcaster`);
+                setFarcasterUser(null);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.log("Error looking up Farcaster user:", errorMessage);
+            setLookupError("Error looking up Farcaster user. Please try again.");
+            setFarcasterUser(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddSupporter = () => {
+        if (!farcasterUser) {
+            setError("Please find a valid Farcaster user first");
+            return;
+        }
+
+        // Create a new supporter object using Farcaster user info
+        const newSupporter: Supporter = {
+            user_id: `fc_${farcasterUser.fid}`,  // Prefix with fc_ to indicate Farcaster ID
+            userAddress: farcasterUser.address || `fc_${farcasterUser.fid}`, // Use ETH address if available
+            userName: farcasterUser.display_name || farcasterUser.username,
+            userAvatar: farcasterUser.pfp_url
+        };
+
+        // Add to local state
+        setInvitedSupporters([...invitedSupporters, newSupporter]);
+
+        // Clear inputs
+        setFarcasterUsername("");
+        setFarcasterUser(null);
+        setError(null);
+    };
+
+    const handleRemoveSupporter = (id: string) => {
+        setInvitedSupporters(invitedSupporters.filter(supporter => supporter.user_id !== id));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +131,13 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
             const deadlineDate = new Date(deadline);
             const id = crypto.randomUUID(); // Generate a random UUID for the goal
 
+            // Get supporter addresses to add to contract call
+            const supporterAddresses = invitedSupporters
+                .map(supporter => supporter.userAddress);
+
+            // Combine owner address with supporter addresses
+            const allAddresses = [address, ...supporterAddresses];
+
             // Send transaction to stake ETH
             sendTransaction({
                 to: ACCOUNTABLE_CONTRACT,
@@ -65,7 +145,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                 data: encodeFunctionData({
                     abi: ACCOUNTABLE_CONTRACT_ABI,
                     functionName: "createGoal",
-                    args: [id, deadlineDate.getTime(), [address]],
+                    args: [id, deadlineDate.getTime(), allAddresses],
                 })
             }, {
                 onSuccess: async (hash) => {
@@ -79,8 +159,14 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                         title,
                         description,
                         deadlineDate,
-                        stakeAmountWei.toString()
+                        stakeAmountWei.toString(),
+                        invitedSupporters
                     );
+
+                    // Add supporters to the goal
+                    for (const supporter of invitedSupporters) {
+                        await goalService.addSupporter(id, supporter);
+                    }
 
                     // Only call onSuccess if the DB operation succeeded
                     if (createdGoal && onSuccess) {
@@ -162,6 +248,104 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                     <p className="text-xs text-gray-500 mt-1">
                         Your balance: {Number.parseFloat(balance.formatted).toFixed(4)} {balance.symbol}
                     </p>
+                )}
+            </div>
+
+            {/* Supporter Invitation Section */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-medium mb-3">Add Accountability Partners</h3>
+                <div className="space-y-4 mb-6">
+                    <div>
+                        <Label htmlFor="farcasterUsername">Lookup by Farcaster Username</Label>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                                <Input
+                                    id="farcasterUsername"
+                                    value={farcasterUsername}
+                                    onChange={(e) => setFarcasterUsername(e.target.value)}
+                                    placeholder="username"
+                                    className="pl-7"
+                                />
+                            </div>
+                        </div>
+                        <Button
+                            type="button"
+                            onClick={handleLookupFarcasterUser}
+                            className="bg-purple-600 hover:bg-purple-700 mt-2"
+                            disabled={loading}
+                        >
+                            {loading ? "Looking up..." : "Lookup"}
+                        </Button>
+                        {lookupError && <div className="text-sm text-red-500 mt-1">{lookupError}</div>}
+
+                        {/* Show found Farcaster user */}
+                        {farcasterUser && (
+                            <div className="mt-3 p-3 border rounded-md bg-gray-50">
+                                <div className="flex items-center">
+                                    {farcasterUser.pfp_url && (
+                                        <Image
+                                            src={farcasterUser.pfp_url}
+                                            alt={farcasterUser.username}
+                                            width={40}
+                                            height={40}
+                                            className="w-10 h-10 rounded-full mr-3"
+                                        />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">{farcasterUser.display_name}</div>
+                                        <div className="text-sm text-gray-500">@{farcasterUser.username}</div>
+                                    </div>
+                                </div>
+                                <Button
+                                    type="button"
+                                    onClick={handleAddSupporter}
+                                    className="mt-2"
+                                >
+                                    Add as Supporter
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {invitedSupporters.length > 0 && (
+                    <div>
+                        <h3 className="font-bold mb-2">Invited Supporters:</h3>
+                        <ul className="space-y-2">
+                            {invitedSupporters.map(supporter => (
+                                <li
+                                    key={supporter.user_id}
+                                    className="flex justify-between items-center p-2 bg-gray-100 rounded"
+                                >
+                                    <div>
+                                        <div className="flex items-center">
+                                            {supporter.userAvatar && (
+                                                <Image
+                                                    src={supporter.userAvatar}
+                                                    alt={supporter.userName || "Supporter"}
+                                                    width={32}
+                                                    height={32}
+                                                    className="w-8 h-8 rounded-full mr-2"
+                                                />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">
+                                                    {supporter.userName || "Unnamed supporter"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        onClick={() => handleRemoveSupporter(supporter.user_id)}
+                                        className="bg-red-500 hover:bg-red-600 text-sm py-1"
+                                    >
+                                        Remove
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 )}
             </div>
 
