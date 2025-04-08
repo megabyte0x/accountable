@@ -8,7 +8,6 @@ let neynarClient: NeynarAPIClient | null = null;
 export function getNeynarClient() {
   if (!neynarClient) {
     const apiKey = process.env.NEYNAR_API_KEY;
-    console.log("NEYNAR_API_KEY:", apiKey);
     if (!apiKey) {
       throw new Error('NEYNAR_API_KEY not configured');
     }

@@ -4,15 +4,45 @@ import type { Goal } from "../../lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { formatEther } from "viem";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 interface GoalCardProps {
     goal: Goal;
 }
 
 export default function GoalCard({ goal }: GoalCardProps) {
-    // Format deadline
+    // Add state for the countdown timer
+    const [timeRemaining, setTimeRemaining] = useState("");
     const deadlineDate = new Date(goal.deadline);
-    const timeRemaining = formatDistanceToNow(deadlineDate, { addSuffix: true });
+
+    // Update the countdown timer
+    useEffect(() => {
+        const updateCountdown = () => {
+            const now = new Date();
+            if (now > deadlineDate) {
+                setTimeRemaining("Deadline passed");
+                return;
+            }
+
+            // Calculate time difference
+            const diff = deadlineDate.getTime() - now.getTime();
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeRemaining(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        };
+
+        // Initial update
+        updateCountdown();
+
+        // Set interval to update every second
+        const intervalId = setInterval(updateCountdown, 1000);
+
+        // Cleanup interval on unmount
+        return () => clearInterval(intervalId);
+    }, [deadlineDate]);
 
     // Format stake amount
     const stakeAmountEth = formatEther(BigInt(goal.stakeAmount));

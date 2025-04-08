@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import sdk, { type Context, type FrameNotificationDetails, AddFrame } from "@farcaster/frame-sdk";
+import { type Context, type FrameNotificationDetails, AddFrame } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import React from "react";
 

@@ -11,7 +11,7 @@ import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/cons
 import { searchFarcasterUsers } from "../../app/actions/searchFarcaster";
 import type { Supporter, FarcasterUser } from "../../lib/types";
 import Image from "next/image";
-import sdk from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/frame-sdk";
 
 interface GoalFormProps {
     onSuccess?: (goalId: string) => void;
@@ -91,9 +91,9 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
         // Create a new supporter object using Farcaster user info
         const newSupporter: Supporter = {
-            user_id: `fc_${farcasterUser.fid}`,  // Prefix with fc_ to indicate Farcaster ID
-            userAddress: farcasterUser.address || `fc_${farcasterUser.fid}`, // Use ETH address if available
-            userName: farcasterUser.display_name || farcasterUser.username,
+            user_id: farcasterUser.fid.toString(),  // Prefix with fc_ to indicate Farcaster ID
+            userAddress: farcasterUser.address || "", // Use ETH address if available
+            userName: farcasterUser.username,
             userAvatar: farcasterUser.pfp_url
         };
 
@@ -115,15 +115,19 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
         stakeAmount: string,
         invitedSupporters: Supporter[]
     ) => {
-
-        const finalMessage = `I am accounting for a new goal: ${title} where I have staked ${stakeAmount} ETH. I hope they will support me! ${invitedSupporters.map(supporter => `@${supporter.userName}`).join(" ")}`;
+        const finalMessage = `I am accounting for a new goal: ${title} where I have staked ${stakeAmount} ETH. My accountability partners are ${invitedSupporters.map(supporter => `@${supporter.userName}`).join(" ")}`;
         console.log("Final message:", finalMessage);
-        await sdk.actions.composeCast({
-            text: finalMessage,
-            embeds: [
-                "https://accountable.megabyte0x.xyz"]
-        });
-        console.log("Casted new goal");
+
+        try {
+            const encodedText = encodeURIComponent(finalMessage);
+            const encodedEmbed = encodeURIComponent("https://accountable.megabyte0x.xyz");
+            const castUrl = `https://warpcast.com/~/compose?text=${encodedText}&embeds[]=${encodedEmbed}`;
+
+            await sdk.actions.openUrl(castUrl);
+            console.log("Opened Warpcast compose window");
+        } catch (error) {
+            console.error("Error casting goal:", error);
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -242,7 +246,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                 <Label htmlFor="deadline">Deadline</Label>
                 <Input
                     id="deadline"
-                    type="date"
+                    type="datetime-local"
                     min={minDate}
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}

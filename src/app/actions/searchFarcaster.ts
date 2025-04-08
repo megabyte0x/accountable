@@ -9,13 +9,10 @@ export async function searchFarcasterUsers(query: string) {
         }
 
         const client = getNeynarClient();
-        console.log("Searching for Farcaster users with query:", query);
 
         const result = await client.lookupUserByUsername({
             username: query,
         });
-
-        console.log("Farcaster users found:", result);
 
         return {
             user: result.user

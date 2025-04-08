@@ -6,7 +6,6 @@ import { Button } from "./ui/Button";
 import GoalList from "./Goal/GoalList";
 import GoalForm from "./Goal/GoalForm";
 import GoalDetail from "./Goal/GoalDetail";
-
 type View = "list" | "create" | "detail";
 
 export default function Accountable() {
@@ -15,6 +14,7 @@ export default function Accountable() {
 
     const { isConnected } = useAccount();
     const { connect, connectors } = useConnect();
+
 
     const handleConnectWallet = () => {
         connect({ connector: connectors[0] });
@@ -102,6 +102,7 @@ export default function Accountable() {
                         )}
 
                     </div>
+
                 )}
 
                 <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
