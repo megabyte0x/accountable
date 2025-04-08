@@ -5,9 +5,9 @@ export async function GET() {
     return NextResponse.json(
       {
         "accountAssociation": {
-          "header": "eyJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4RTc0NzUyQTZlQTgyOWJmMEY0N0Q4ODMzRjVjMEY5MDMwYWIyMTU1MyIsImZpZCI6MTQ1ODJ9",
-          "payload": "eyJkb21haW4iOiJhY2NvdW50YWJsZS1tZWdhYnl0ZTB4LW1lZ2FieXRlcy1wcm9qZWN0cy52ZXJjZWwuYXBwIn0",
-          "signature": "MHhkODg4OTMyNDEzZTFhYTZhOWU1M2EyMjNlZWYyYWU2OTUwOWU4YWZjOGUxYzdhZjNlODJmODRlNjIyOTg0NmMxNTljNDliOTlmNjI1NGNkMDRlMTUzOWFlYzQxNDgwNmY1YzJjZmE4YmI2ZmVkNDgxMWQxNDlhZDRmZjZjMmIxZjFi"
+          "header": "eyJmaWQiOjE0NTgyLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4RTc0NzUyQTZlQTgyOWJmMEY0N0Q4ODMzRjVjMEY5MDMwYWIyMTU1MyJ9",
+          "payload": "eyJkb21haW4iOiJhY2NvdW50YWJsZS5tZWdhYnl0ZTB4Lnh5eiJ9",
+          "signature": "MHgxNTA2ZTAzZTUzYWY1YTIxZWQ5Y2ZlNGQ3YjFmNzQzNWJkZDA2OWE2M2Y0Y2U5NjEyYWZmZTUyY2UzMDU1Yzk2MGYzNGVhY2YxMmU3NTM5ZTEyZDQ4MjBjYmY3NjI3YTkxYWQ4ZTE0Yjg1OTdiODM0OWIwYWM0MGU5NGZhNjBlZjFi"
         },
         "frame": {
           "version": "1",
