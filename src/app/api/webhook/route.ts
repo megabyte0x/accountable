@@ -1,13 +1,13 @@
 import {
-  type ParseWebhookEvent,
+  ParseWebhookEvent,
   parseWebhookEvent,
   verifyAppKeyWithNeynar,
 } from "@farcaster/frame-node";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import {
   deleteUserNotificationDetails,
   setUserNotificationDetails,
-} from "~/lib/services/notificationService";
+} from "~/lib/kv";
 import { sendFrameNotification } from "~/lib/notifs";
 
 export async function POST(request: NextRequest) {
