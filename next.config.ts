@@ -3,7 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['imagedelivery.net', 'i.imgur.com'],
+    remotePatterns: [
+      {
+        hostname: 'imagedelivery.net',
+      },
+      {
+        hostname: 'i.imgur.com',
+      },
+    ],
   },
 };
 

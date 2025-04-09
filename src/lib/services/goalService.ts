@@ -1,5 +1,5 @@
 import type { Goal, GoalDB, Supporter, SupporterDB } from "../types";
-import { supabase } from "../supabase-client";
+import { supabase } from "../supabase/supabase-client";
 
 // Table name for goals in Supabase
 const GOALS_TABLE = 'goals';
