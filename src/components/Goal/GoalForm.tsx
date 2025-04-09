@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { useAccount, useBalance, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { goalService } from "../../lib/services/goalService";
 import { encodeFunctionData, parseEther } from "viem";
 import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/lib/constants";
 import { searchFarcasterUsers } from "../../app/actions/searchFarcaster";
 import type { Supporter, FarcasterUser } from "../../lib/types";
-import Image from "next/image";
 import { sdk } from "@farcaster/frame-sdk";
+import { useFrame } from "../providers/FrameProvider";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/Button";
+import Image from "next/image";
 
 interface GoalFormProps {
     onSuccess?: (goalId: string) => void;
@@ -39,6 +40,9 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
     // Get min date (today) for the deadline input
     const today = new Date();
     const minDate = today.toISOString().split("T")[0];
+
+    const { context } = useFrame();
+    const userFid = context?.user.fid || 0;
 
     // Transaction handling
     const { sendTransaction, isPending: isSendingTx } = useSendTransaction();
@@ -176,7 +180,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                     // Create the goal in the local database
                     const createdGoal = await goalService.createGoal(
                         id,
-                        (await sdk.context).user.fid,
+                        userFid,
                         address,
                         title,
                         description,
