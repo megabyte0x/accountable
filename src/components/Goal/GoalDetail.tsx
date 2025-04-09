@@ -96,6 +96,9 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
     // Check if the goal is still active
     const isActive = goal.status === "active";
 
+    // Modify button behavior based on deadline
+    const isDeadlinePassed = goal.deadline instanceof Date && goal.deadline.getTime() < Date.now();
+
     const handleComplete = async () => {
         if (!isOwner || !isActive) return;
 
@@ -185,10 +188,10 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
     return (
         <div className="p-4 border rounded-lg">
             <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-bold">{goal.title}</h2>
-                <span className={`text-xs px-2 py-1 rounded-full ${goal.status === "active" ? "bg-blue-100 text-blue-800" :
-                    goal.status === "completed" ? "bg-green-100 text-green-800" :
-                        "bg-red-100 text-red-800"
+                <h2 className="text-xl text-gray-900 dark:text-gray-100 font-bold">{goal.title}</h2>
+                <span className={`text-xs px-2 py-1 rounded-full ${goal.status === "active" ? "bg-purple-100 text-purple-900" :
+                    goal.status === "completed" ? "bg-teal-100 text-teal-900" :
+                        "bg-orange-100 text-orange-900"
                     }`}>
                     {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}
                 </span>
@@ -199,16 +202,16 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
             <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="p-3 bg-gray-50 rounded">
                     <div className="text-sm text-gray-500">Deadline</div>
-                    <div>{timeRemaining}</div>
+                    <div className="text-gray-900 dark:text-gray-100">{timeRemaining}</div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded">
                     <div className="text-sm text-gray-500">Stake</div>
-                    <div>{stakeAmountEth} ETH</div>
+                    <div className="text-gray-900 dark:text-gray-100">{stakeAmountEth} ETH</div>
                 </div>
             </div>
 
             <div className="mb-4">
-                <h3 className="font-bold mb-2">Supporters ({supporters.length})</h3>
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2">Supporters ({supporters.length})</h3>
                 {!supporters || supporters.length === 0 ? (
                     <p className="text-gray-500">No supporters yet</p>
                 ) : (
@@ -249,7 +252,7 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
             )}
 
             <div className="space-y-2">
-                {isOwner && isActive && (
+                {isOwner && isActive && !isDeadlinePassed && (
                     <div className="flex gap-2">
                         <Button
                             onClick={handleComplete}
@@ -264,6 +267,18 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
                             className="flex-1 bg-red-600 hover:bg-red-700"
                         >
                             {isFailing ? "Processing..." : "Give Up"}
+                        </Button>
+                    </div>
+                )}
+
+                {isOwner && isActive && isDeadlinePassed && (
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={handleFail}
+                            disabled={isCompleting || isFailing || isConfirming}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700"
+                        >
+                            {isFailing ? "Processing..." : "Will Try Again"}
                         </Button>
                     </div>
                 )}
