@@ -6,15 +6,17 @@ import { Button } from "./ui/Button";
 import GoalList from "./Goal/GoalList";
 import GoalForm from "./Goal/GoalForm";
 import GoalDetail from "./Goal/GoalDetail";
-import { ACCOUNTABLE_CONTRACT } from "../app/utils/constants";
+import { ACCOUNTABLE_CONTRACT } from "../lib/constants";
 
 type View = "list" | "create" | "detail";
 
+const isDevelopment = process.env.NEXT_PUBLIC_ENV === "development";
+const BASESCAN_URL = isDevelopment ? "https://base-sepolia.blockscout.com/" : "https://base.blockscout.com/";
 
 export default function Accountable() {
+
     const [currentView, setCurrentView] = useState<View>("list");
     const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-
     const { isConnected } = useAccount();
     const { connect, connectors } = useConnect();
 
@@ -46,7 +48,7 @@ export default function Accountable() {
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
             <div className="max-w-xl mx-auto p-4 sm:p-6 md:p-8">
                 <header className="text-center mb-8">
-                    <h1 className="text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">Accountable</h1>
+                    <h1 className="text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600"> accountable</h1>
                     <p className="text-gray-600 dark:text-gray-400">Set goals, stake ETH, stay accountable</p>
                 </header>
 
@@ -112,7 +114,7 @@ export default function Accountable() {
 
                         <div className="flex justify-center space-x-4">
                             <a
-                                href={`https://basescan.org/address/${ACCOUNTABLE_CONTRACT}`}
+                                href={`${BASESCAN_URL}/address/${ACCOUNTABLE_CONTRACT}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-purple-500 transition-colors"

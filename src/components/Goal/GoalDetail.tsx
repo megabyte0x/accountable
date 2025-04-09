@@ -7,7 +7,7 @@ import { goalService } from "../../lib/services/goalService";
 import { formatDistanceToNow } from "date-fns";
 import { encodeFunctionData, formatEther } from "viem";
 import type { Goal, Supporter } from "../../lib/types";
-import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
+import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/lib/constants";
 import Image from "next/image";
 
 interface GoalDetailProps {
@@ -150,15 +150,17 @@ export default function GoalDetail({ goalId, onBack }: GoalDetailProps) {
         setError(null);
 
         try {
-            const amountPerSupporter = formatEther(BigInt(Number(goal.stakeAmount) / supporters.length));
+            const perSupporter = Number(goal.stakeAmount) / (supporters.length + 1)
+
+            const amountPerSupporter = perSupporter.toString();
 
             // Simulate a transaction to distribute ETH (this would be handled by a contract)
             sendTransaction({
-                to: address,
+                to: ACCOUNTABLE_CONTRACT,
                 data: encodeFunctionData({
                     abi: ACCOUNTABLE_CONTRACT_ABI,
                     functionName: "completeGoal",
-                    args: [goalId, false, formatEther(BigInt(amountPerSupporter))]
+                    args: [goalId, false, amountPerSupporter]
                 }) // dummy transaction
             }, {
                 onSuccess: async (hash) => {

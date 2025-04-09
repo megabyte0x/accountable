@@ -1,5 +1,6 @@
 export interface Goal {
     id: string;
+    user_id: number;
     address: string;
     title: string;
     description: string;
@@ -12,7 +13,7 @@ export interface Goal {
 }
 
 export interface Supporter {
-    user_id: string;
+    user_id: number;
     userAddress: string;
     userName?: string;
     userAvatar?: string;
@@ -48,6 +49,7 @@ export interface FarcasterUser {
 // Define database types
 export interface GoalDB {
     id: string;
+    user_id: number;
     address: string;
     title: string;
     description: string;
@@ -61,7 +63,7 @@ export interface GoalDB {
 
 export interface SupporterDB {
     goal_id: string;
-    user_id: string;
+    user_id: number;
     user_address: string;
     user_name?: string;
     user_avatar?: string;

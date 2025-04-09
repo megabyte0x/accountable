@@ -66,8 +66,8 @@ export default function InviteSupporters({ goalId, onInvited, onCancel }: Invite
 
         // Create a new supporter object using Farcaster user info
         const newSupporter: Supporter = {
-            user_id: `fc_${farcasterUser.fid}`,  // Prefix with fc_ to indicate Farcaster ID
-            userAddress: farcasterUser.address || `fc_${farcasterUser.fid}`, // Use ETH address if available
+            user_id: farcasterUser.fid,  // Prefix with fc_ to indicate Farcaster ID
+            userAddress: farcasterUser.address || "", // Use ETH address if available
             userName: farcasterUser.display_name || farcasterUser.username,
             userAvatar: farcasterUser.pfp_url
         };
@@ -98,7 +98,7 @@ export default function InviteSupporters({ goalId, onInvited, onCancel }: Invite
         }
     };
 
-    const handleRemoveSupporter = (id: string) => {
+    const handleRemoveSupporter = (id: number) => {
         setInvitedSupporters(invitedSupporters.filter(supporter => supporter.user_id !== id));
     };
 

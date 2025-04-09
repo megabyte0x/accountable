@@ -1,5 +1,5 @@
 import { notificationDetailsSchema } from "@farcaster/frame-sdk";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { setUserNotificationDetails } from "~/lib/kv";
 import { sendFrameNotification } from "~/lib/notifs";
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   const sendResult = await sendNotification({
     fid: Number(requestBody.data.fid),
     title: "Test notification",
-    body: "Sent at " + new Date().toISOString(),
+    body: `Sent at ${new Date().toISOString()}`,
   });
 
   if (sendResult.state === "error") {

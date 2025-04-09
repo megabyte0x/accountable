@@ -68,6 +68,7 @@ const mapGoalFromDB = (goal: GoalDB): Goal => {
 
     return {
         id: goal.id,
+        user_id: goal.user_id,
         address: goal.address,
         title: goal.title,
         description: goal.description,
@@ -95,6 +96,7 @@ const prepareGoalForDB = (goal: Partial<Goal>): Record<string, unknown> => {
     const dbGoal: Record<string, unknown> = {};
 
     if (goal.address) dbGoal.address = goal.address;
+    if (goal.user_id) dbGoal.user_id = goal.user_id;
     if (goal.title) dbGoal.title = goal.title;
     if (goal.description) dbGoal.description = goal.description;
     if (goal.deadline) dbGoal.deadline = goal.deadline;
@@ -166,6 +168,7 @@ export const goalService = {
     // Create a new goal
     createGoal: async (
         id: string,
+        user_id: number,
         address: string,
         title: string,
         description: string,
@@ -176,6 +179,7 @@ export const goalService = {
         console.log("Creating goal:", id);
         const newGoal = prepareGoalForDB({
             id,
+            user_id,
             address,
             title,
             description,
