@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { useAccount, useBalance, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { goalService } from "../../lib/services/goalService";
 import { encodeFunctionData, parseEther } from "viem";
-import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/app/utils/constants";
+import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/lib/constants";
 import { searchFarcasterUsers } from "../../app/actions/searchFarcaster";
 import type { Supporter, FarcasterUser } from "../../lib/types";
 import Image from "next/image";

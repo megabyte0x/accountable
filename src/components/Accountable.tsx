@@ -6,17 +6,22 @@ import { Button } from "./ui/Button";
 import GoalList from "./Goal/GoalList";
 import GoalForm from "./Goal/GoalForm";
 import GoalDetail from "./Goal/GoalDetail";
-import { ACCOUNTABLE_CONTRACT } from "../app/utils/constants";
+import { ACCOUNTABLE_CONTRACT } from "../lib/constants";
 
 type View = "list" | "create" | "detail";
 
+const isDevelopment = process.env.NEXT_PUBLIC_ENV === "development";
+const BASESCAN_URL = isDevelopment ? "https://base-sepolia.blockscout.com/" : "https://base.blockscout.com/";
 
 export default function Accountable() {
+
     const [currentView, setCurrentView] = useState<View>("list");
     const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-
     const { isConnected } = useAccount();
     const { connect, connectors } = useConnect();
+
+    console.log("isDevelopment", isDevelopment);
+    console.log("BASESCAN_URL", BASESCAN_URL);
 
 
     const handleConnectWallet = () => {
@@ -112,7 +117,7 @@ export default function Accountable() {
 
                         <div className="flex justify-center space-x-4">
                             <a
-                                href={`https://basescan.org/address/${ACCOUNTABLE_CONTRACT}`}
+                                href={`${BASESCAN_URL}/address/${ACCOUNTABLE_CONTRACT}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-purple-500 transition-colors"

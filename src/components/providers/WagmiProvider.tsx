@@ -1,13 +1,16 @@
 "use client";
 
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { base } from "wagmi/chains";
+import { base, baseSepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-connector";
 
+const isDevelopment = process.env.NEXT_PUBLIC_ENV === "development";
+
 export const config = createConfig({
-  chains: [base],
+  chains: [isDevelopment ? baseSepolia : base],
   transports: {
+    [baseSepolia.id]: http(),
     [base.id]: http()
   },
   connectors: [miniAppConnector()],
