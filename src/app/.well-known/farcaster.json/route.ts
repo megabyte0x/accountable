@@ -18,7 +18,7 @@ export async function GET() {
           "buttonTitle": "Get Me Accountable!",
           "splashImageUrl": "https://accountable.megabyte0x.xyz/splash.png",
           "splashBackgroundColor": "#f7f7f7",
-          "webhookUrl": "https://api.neynar.com/f/app/b0ec2c3a-d598-497c-899c-6791c1ebc70d/event"
+          "webhookUrl": "https://accountable.megabyte0x.xyz/api/webhook"
         }
       }
     );
