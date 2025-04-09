@@ -5,7 +5,7 @@ import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from "wa
 import { Button } from "../ui/Button";
 import { goalService } from "../../lib/services/goalService";
 import { formatDistanceToNow } from "date-fns";
-import { encodeFunctionData, formatEther, parseEther } from "viem";
+import { encodeFunctionData, formatEther } from "viem";
 import type { Goal, Supporter } from "../../lib/types";
 import { ACCOUNTABLE_CONTRACT, ACCOUNTABLE_CONTRACT_ABI } from "~/lib/constants";
 import Image from "next/image";

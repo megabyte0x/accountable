@@ -91,7 +91,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
 
         // Create a new supporter object using Farcaster user info
         const newSupporter: Supporter = {
-            user_id: farcasterUser.fid.toString(),  // Prefix with fc_ to indicate Farcaster ID
+            user_id: farcasterUser.fid,  // Prefix with fc_ to indicate Farcaster ID
             userAddress: farcasterUser.address || "", // Use ETH address if available
             userName: farcasterUser.username,
             userAvatar: farcasterUser.pfp_url
@@ -106,7 +106,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
         setError(null);
     };
 
-    const handleRemoveSupporter = (id: string) => {
+    const handleRemoveSupporter = (id: number) => {
         setInvitedSupporters(invitedSupporters.filter(supporter => supporter.user_id !== id));
     };
 
@@ -176,6 +176,7 @@ export default function GoalForm({ onSuccess, onCancel }: GoalFormProps) {
                     // Create the goal in the local database
                     const createdGoal = await goalService.createGoal(
                         id,
+                        (await sdk.context).user.fid,
                         address,
                         title,
                         description,
